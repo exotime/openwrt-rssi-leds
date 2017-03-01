@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# Small script to hook onto the WPS button on the front of the device.
+#
+# Note: On the Alfa AP121U, the RESET button and the WPS button are mapped to
+# the pin of each other: https://dev.openwrt.org/ticket/14136
+#
+# In normal circumstances, or from 14.07, this should be the WPS button instead.
+
+[ "${ACTION}" = "released" ] || exit 0
+
+. /lib/functions.sh
+
+logger "$BUTTON pressed for $SEEN seconds"
+
+if [ "$SEEN" -lt 1 ]; then
+    logger "Calling RSSI handler..."
+    /root/rssi-handler.sh
+elif [ "$SEEN" -gt 10 ]; then
+    echo "FACTORY RESET" > /dev/console
+    jffs2reset -y && reboot &
+fi
